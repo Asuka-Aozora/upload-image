@@ -3,9 +3,7 @@ import { getImagesById } from "@/lib/data";
 import { notFound } from "next/navigation";
 
 type PageProps = {
-  params: {
-    id: string;
-  };
+  params: { id: string }; 
 };
 
 const EditPage = async ({ params }: PageProps) => {
