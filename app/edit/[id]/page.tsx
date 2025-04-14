@@ -2,7 +2,13 @@ import EditForm from "@/components/edit-form";
 import { getImagesById } from "@/lib/data";
 import { notFound } from "next/navigation";
 
-const EditPage = async ({ params }: { params: { id: string } }) => {
+type PageProps = {
+  params: {
+    id: string;
+  };
+};
+
+const EditPage = async ({ params }: PageProps) => {
   const data = await getImagesById(params.id);
   if (!data) return notFound();
   return (
