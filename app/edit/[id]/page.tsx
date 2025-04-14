@@ -1,9 +1,14 @@
 import EditForm from "@/components/edit-form";
 import { getImagesById } from "@/lib/data";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
 type PageProps = {
   params: { id: string }; 
+};
+
+export const metadata: Metadata = {
+  title: "Edit Image",
 };
 
 const EditPage = async ({ params }: PageProps) => {
