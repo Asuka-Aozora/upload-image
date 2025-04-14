@@ -1,11 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  api: {
-    bodyParser: {
-      sizeLimit: "4mb",
-    }
-  },
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
@@ -13,6 +9,11 @@ const nextConfig: NextConfig = {
         hostname: "8bga72dygwns5fhw.public.blob.vercel-storage.com",
       },
     ],
+  },
+  api: {
+    bodyParser: {
+      sizeLimit: "4mb",
+    }
   },
 };
 

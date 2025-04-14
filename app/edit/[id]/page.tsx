@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 type PageProps = {
-  params: { id: string }; 
+  params: { id: string }; // Pastikan ini objek biasa, bukan Promise
 };
 
 export const metadata: Metadata = {
@@ -13,7 +13,10 @@ export const metadata: Metadata = {
 
 const EditPage = async ({ params }: PageProps) => {
   const data = await getImagesById(params.id);
-  if (!data) return notFound();
+
+  if (!data) {
+    return notFound();
+  }
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100">
       <div className="bg-white p-8 rounded-sm shadow">
