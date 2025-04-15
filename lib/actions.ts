@@ -24,17 +24,17 @@ const EditSchema = z.object({
   image: z
     .instanceof(File)
     .refine((file) => file.size === 0 || file.type.startsWith("image/"), {
-      message: "File must be an image",
+      message: "Only images are allowed",
+    })
+    .refine((file) => file.size < 4000000, {
+      message: "Image must less than 4MB",
     })
     .optional(),
 });
-
-export const uploadImage = async (_: unknown, formData: FormData) => {
-  const title = formData.get("title");
-  const image = formData.get("image");
-
-  // Validasi dengan zod
-  const validatedFields = UploadSchema.safeParse({ title, image });
+export const uploadImage = async (prevState: unknown, formData: FormData) => {
+  const validatedFields = UploadSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
 
   if (!validatedFields.success) {
     return {
@@ -42,9 +42,8 @@ export const uploadImage = async (_: unknown, formData: FormData) => {
     };
   }
 
-  const { title: validTitle, image: validImage } = validatedFields.data;
-
-  const { url } = await put(validImage.name, validImage as File, {
+  const { title, image } = validatedFields.data;
+  const { url } = await put(image.name, image, {
     access: "public",
     multipart: true,
   });
@@ -52,30 +51,28 @@ export const uploadImage = async (_: unknown, formData: FormData) => {
   try {
     await prisma.upload.create({
       data: {
-        title: validTitle,
+        title,
         image: url,
       },
     });
   } catch (error) {
-    console.error("Upload failed:", error);
-    return { error: "Failed to upload image. File size may be too large." };
+    console.error("Failed to create data:", error);
+    return { message: "Failed to create data" };
   }
 
   revalidatePath("/");
   redirect("/");
 };
 
-// update image
+// Update image
 export const updateImage = async (
   id: string,
-  _: unknown,
+  prevState: unknown,
   formData: FormData
 ) => {
-  const title = formData.get("title");
-  const image = formData.get("image") as File | null;
-
-  // Validasi dengan Zod
-  const validatedFields = EditSchema.safeParse({ title, image });
+  const validatedFields = EditSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
 
   if (!validatedFields.success) {
     return {
@@ -83,40 +80,33 @@ export const updateImage = async (
     };
   }
 
-  const data = await prisma.upload.findUnique({
-    where: { id },
-  });
+  const data = await getImagesById(id);
+  if (!data) return { message: "No Data Found" };
 
-  if (!data) {
-    return { message: "No Data Found" };
+  const { title, image } = validatedFields.data;
+  let imagePath;
+  if (!image || image.size <= 0) {
+    imagePath = data.image;
+  } else {
+    await del(data.image);
+    const { url } = await put(image.name, image, {
+      access: "public",
+      multipart: true,
+    });
+    imagePath = url;
   }
 
-  const { title: validTitle } = validatedFields.data;
-  let imagePath: string;
-
   try {
-    if (!image || image.size <= 0) {
-      imagePath = data.image;
-    } else {
-      await del(data.image); // Hapus gambar lama
-      const { url } = await put(image.name, image, {
-        access: "public",
-        multipart: true,
-      });
-      imagePath = url;
-    }
-
-    // Update data di Prisma
     await prisma.upload.update({
-      where: { id },
       data: {
-        title: validTitle,
+        title,
         image: imagePath,
       },
+      where: { id },
     });
   } catch (error) {
-    console.error("Update failed:", error);
-    return { error: "Failed to update image. File size may be too large." };
+    console.error("Failed to update data:", error);
+    return { message: "Failed to update data" };
   }
 
   revalidatePath("/");
@@ -124,55 +114,21 @@ export const updateImage = async (
 };
 
 // delete image
-export const deleteImage2 = async (_: unknown, formData: FormData) => {
-  const title = formData.get("title");
-  const image = formData.get("image");
+export const deleteImage = async (formData: FormData) => {
+  const id = formData.get("id") as string;
 
-  // Validasi dengan zod
-  const validatedFields = UploadSchema.safeParse({ title, image });
-
-  if (!validatedFields.success) {
-    return {
-      error: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  const { title: validTitle, image: validImage } = validatedFields.data;
-
-  const { url } = await put(validImage.name, validImage as File, {
-    access: "public",
-    multipart: true,
-  });
-
-  try {
-    await prisma.upload.create({
-      data: {
-        title: validTitle,
-        image: url,
-      },
-    });
-  } catch (error) {
-    console.error("Upload failed:", error);
-    return { error: "Failed to upload image. File size may be too large." };
-  }
-
-  revalidatePath("/");
-  redirect("/");
-};
-
-export const deleteImage = async (id: string) => {
   const data = await getImagesById(id);
-  if (!data) return { message: "No data found" };
-  await del(data.image);
-  try {
-    await prisma.upload.delete({
-      where: {
-        id,
-      },
-    });
-  } catch (error) {
-    console.error("Error deleting image", error);
-    return { message: "Failed to delete image" };
+  if (!data) {
+    console.error("No data found for ID:", id);
+    return;
   }
-  revalidatePath("/");
+
+  try {
+    await del(data.image); // delete dari blob
+    await prisma.upload.delete({ where: { id } }); // delete dari DB
+  } catch (error) {
+    console.error("Failed to delete image:", error);
+    return;
+  }
+  revalidatePath("/"); // update cache
 };

@@ -21,7 +21,6 @@ const Card = ({ data }: { data: Upload }) => {
         </h1>
       </div>
       <div className="flex items-center justify-between">
-        <EditButton id={data.id} />
         <DeleteButton id={data.id} />
       </div>
     </div>

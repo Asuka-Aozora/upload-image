@@ -2,7 +2,7 @@
 import { useFormStatus } from "react-dom";
 import { clsx } from "clsx";
 import Link from "next/link";
-import { deleteImage2 } from "@/lib/actions";
+import { deleteImage } from "@/lib/actions";
 
 export const SubmitButton = ({ label }: { label: string }) => {
   const { pending } = useFormStatus();
@@ -38,12 +38,12 @@ export const EditButton = ({ id }: { id: string }) => {
 };
 
 export const DeleteButton = ({ id }: { id: string }) => {
-  const deleteImageWithId = deleteImage2.bind(null, id);
   return (
     <form
-      action={deleteImageWithId}
+      action={deleteImage}
       className="py-3 text-sm bg-gray-50 rounded-br-md w-full hover:bg-gray-100 text-center"
     >
+      <input type="hidden" name="id" value={id} />
       <DeleteBtn />
     </form>
   );

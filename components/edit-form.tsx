@@ -2,7 +2,8 @@
 import { updateImage } from "@/lib/actions";
 import { useActionState } from "react";
 import { SubmitButton } from "@/components/button";
-import type { Upload } from "@prisma/client";
+import type { Upload } from "../app/generated/prisma/client";
+
 
 const EditForm = ({ data }: { data: Upload }) => {
   const [state, formActions] = useActionState(
@@ -21,7 +22,7 @@ const EditForm = ({ data }: { data: Upload }) => {
           defaultValue={data.title}
         />
         <div aria-live="polite" aria-atomic="true">
-          <p className="text-sm text-red-500 mt-2">{state?.error?.title}</p>
+          <p className="text-sm text-red-500 mt-2">{state?.error?.title }</p>
         </div>
       </div>
       <div className="mb-4 pt-2">

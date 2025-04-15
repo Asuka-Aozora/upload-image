@@ -1,11 +1,11 @@
 "use client";
-import { updateImage } from "@/lib/actions";
+import { uploadImage } from "@/lib/actions";
 import { useActionState } from "react";
 import { SubmitButton } from "@/components/button";
 
 const CreateForm = () => {
   // const [imageUrl, setImageUrl] = useState("");
-  const [state, formActions] = useActionState(updateImage, null);
+  const [state, formActions] = useActionState(uploadImage, null);
 
   // const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
   //   e.preventDefault();
